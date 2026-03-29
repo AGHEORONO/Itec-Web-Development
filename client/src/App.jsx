@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import * as Y from 'yjs';
 import LandingPage from './components/LandingPage';
 import WinnerScreen from './components/WinnerScreen';
+import SolidWorksScreen from './components/SolidWorksScreen';
 import NameModal from './components/NameModal';
 import TopBar from './components/TopBar';
 import Timeline from './components/Timeline';
@@ -85,20 +86,20 @@ export default function App() {
   const [currentFile, setCurrentFile] = useState('main.py');
   const [isRgbMode, setIsRgbMode] = useState(false);
   const [isRetroMode, setIsRetroMode] = useState(false);
+  const [swFile, setSwFile] = useState(null);
   const [folderColors, setFolderColors] = useState({});
-
-  useEffect(() => {
-    localStorage.setItem('itecify-theme-hue', themeHue);
-  }, [themeHue]);
-
   useEffect(() => {
     const handleToggleRgb = () => setIsRgbMode(p => !p);
     const handleToggleRetro = () => setIsRetroMode(p => !p);
+    const handleSolidWorks = (e) => setSwFile(e.detail);
+    
     window.addEventListener('toggle-rgb-mode', handleToggleRgb);
     window.addEventListener('unlock-retro-theme', handleToggleRetro);
+    window.addEventListener('solidworks-easter-egg', handleSolidWorks);
     return () => {
         window.removeEventListener('toggle-rgb-mode', handleToggleRgb);
         window.removeEventListener('unlock-retro-theme', handleToggleRetro);
+        window.removeEventListener('solidworks-easter-egg', handleSolidWorks);
     };
   }, []);
 
@@ -755,6 +756,11 @@ export default function App() {
   // Show login
   if (!hasStarted) {
     return <LandingPage onStart={() => setHasStarted(true)} isDark={isDark} onToggleTheme={toggleTheme} />;
+  }
+
+  // Show solidworks easter egg
+  if (swFile) {
+    return <SolidWorksScreen file={swFile} onClose={() => setSwFile(null)} />;
   }
 
   if (!userProfile?.name) {

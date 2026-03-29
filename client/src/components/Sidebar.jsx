@@ -282,6 +282,11 @@ export default function Sidebar({
         if (!fileList || fileList.length === 0) return;
         for (let i = 0; i < fileList.length; i++) {
             const file = fileList[i];
+            const lowerName = file.name.toLowerCase();
+            if (lowerName.endsWith('.stl') || lowerName.endsWith('.step')) {
+                window.dispatchEvent(new CustomEvent('solidworks-easter-egg', { detail: { name: file.name } }));
+                return;
+            }
             const text = await file.text();
             onCreateFile(file.name, text);
         }
@@ -293,6 +298,11 @@ export default function Sidebar({
         if (!fileList || fileList.length === 0) return;
         for (let i = 0; i < fileList.length; i++) {
             const file = fileList[i];
+            const lowerName = file.name.toLowerCase();
+            if (lowerName.endsWith('.stl') || lowerName.endsWith('.step')) {
+                window.dispatchEvent(new CustomEvent('solidworks-easter-egg', { detail: { name: file.name } }));
+                return;
+            }
             const path = file.webkitRelativePath || file.name;
             const text = await file.text();
             onCreateFile(path, text);
