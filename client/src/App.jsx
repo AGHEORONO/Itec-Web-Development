@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import * as Y from 'yjs';
 import LandingPage from './components/LandingPage';
+import WinnerScreen from './components/WinnerScreen';
 import NameModal from './components/NameModal';
 import TopBar from './components/TopBar';
 import Timeline from './components/Timeline';
@@ -739,6 +740,11 @@ export default function App() {
       }
       setUserProfile(profile);
   };
+
+  // Show winner easter egg
+  if (roomId && roomId.toLowerCase() === 'winner') {
+      return <WinnerScreen isDark={isDark} onToggleTheme={toggleTheme} />;
+  }
 
   // Show login
   if (!hasStarted) {
