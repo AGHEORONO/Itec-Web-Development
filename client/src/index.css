@@ -85,6 +85,41 @@ body {
   --Monaco-theme: light;
 }
 
+/* ── Retro 1995 Easter Egg Theme ── */
+.theme-retro-1995 {
+  --bg-app: #0000AA !important;
+  --bg-header: #0000AA !important;
+  --bg-sidebar-icon: #0000AA !important;
+  --bg-sidebar-menu: #0000AA !important;
+  --bg-panel: #0000AA !important;
+  --bg-input: #000080 !important;
+  --bg-terminal: #000080 !important;
+  --bg-glass: #0000AA !important;
+  --bg-hover: #00AAAA !important;
+  --bg-primary-light: #00AAAA !important;
+  --bg-primary-solid: #AAAAAA !important;
+  --border: #AAAAAA !important;
+  --border-primary: #AAAAAA !important;
+  --text-primary: #FFFFFF !important;
+  --text-muted: #AAAAAA !important;
+  --text-active: #FFFF55 !important;
+  --accent: #FFFF55 !important;
+  --accent-glow: rgba(255, 255, 85, .5) !important;
+  --glow-from: #00AAAA !important;
+  --glow-to: #00AAAA !important;
+  --select-bg: #000080 !important;
+  --select-text: #FFFFFF !important;
+  --select-border: #AAAAAA !important;
+  --shadow-color: 0, 0, 0 !important;
+}
+
+.theme-retro-1995 * {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  font-family: 'Consolas', 'Courier New', monospace !important;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar {
   width: 7px;

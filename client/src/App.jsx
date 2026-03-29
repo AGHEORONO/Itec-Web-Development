@@ -84,6 +84,7 @@ export default function App() {
   const [files, setFiles] = useState(['main.py']);
   const [currentFile, setCurrentFile] = useState('main.py');
   const [isRgbMode, setIsRgbMode] = useState(false);
+  const [isRetroMode, setIsRetroMode] = useState(false);
   const [folderColors, setFolderColors] = useState({});
 
   useEffect(() => {
@@ -92,8 +93,13 @@ export default function App() {
 
   useEffect(() => {
     const handleToggleRgb = () => setIsRgbMode(p => !p);
+    const handleToggleRetro = () => setIsRetroMode(p => !p);
     window.addEventListener('toggle-rgb-mode', handleToggleRgb);
-    return () => window.removeEventListener('toggle-rgb-mode', handleToggleRgb);
+    window.addEventListener('unlock-retro-theme', handleToggleRetro);
+    return () => {
+        window.removeEventListener('toggle-rgb-mode', handleToggleRgb);
+        window.removeEventListener('unlock-retro-theme', handleToggleRetro);
+    };
   }, []);
 
   const [activeYtext, setActiveYtext] = useState(null);
@@ -756,7 +762,7 @@ export default function App() {
   }
 
   return (
-    <div className={isRgbMode ? 'theme-rgb-mode' : ''} style={{
+    <div className={`${isRgbMode ? 'theme-rgb-mode' : ''} ${isRetroMode ? 'theme-retro-1995' : ''}`} style={{
       display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--bg-app)',
       transition: 'background .7s', filter: `hue-rotate(${themeHue}deg)`
     }}>

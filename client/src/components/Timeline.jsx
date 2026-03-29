@@ -4,6 +4,7 @@ import { SkipBack, SkipForward, BookmarkPlus, Trash2, X } from 'lucide-react';
 
 export default function Timeline({ historyArray, currentFile, userName, userColor, onSelectNode, isGhostView, activeNodeId, onManualKeyframe }) {
     const [nodes, setNodes] = useState([]);
+    const [retroCount, setRetroCount] = useState(0);
     const railRef = useRef(null);
 
     // Sync from Y.Array
@@ -33,7 +34,22 @@ export default function Timeline({ historyArray, currentFile, userName, userColo
     if (!historyArray) return null;
 
     const handleJumpToStart = () => {
-        if (nodes.length > 0) onSelectNode(nodes[0]);
+        if (nodes.length > 0) {
+            const firstNodeId = nodes[0].id;
+            if (activeNodeId === firstNodeId) {
+                setRetroCount(c => {
+                    const next = c + 1;
+                    if (next >= 5) {
+                        window.dispatchEvent(new CustomEvent('unlock-retro-theme'));
+                        return 0;
+                    }
+                    return next;
+                });
+            } else {
+                onSelectNode(nodes[0]);
+                setRetroCount(0);
+            }
+        }
     };
 
     const handleJumpToEnd = () => {
