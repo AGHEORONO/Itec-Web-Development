@@ -201,6 +201,7 @@ CMD ["php", "${fileName}"]`;
     const filePath = path.join(tmpDir, fileName);
     const dockerfilePath = path.join(tmpDir, `Dockerfile_${id}`);
     const imageName = `itecify-run-${id.toLowerCase()}`;
+    const containerName = `itecify-cont-${id.toLowerCase()}`;
 
     fs.writeFileSync(filePath, code);
     fs.writeFileSync(dockerfilePath, dockerfileContent);
@@ -210,7 +211,7 @@ CMD ["php", "${fileName}"]`;
     try {
         console.log(`[Docker] Building isolated execution container ${imageName}`);
         execSync(`docker build -t ${imageName} -f Dockerfile_${id} .`, { cwd: tmpDir, timeout: 300000 });
-        return { error: null, imageName, cleanup };
+        return { error: null, imageName, containerName, cleanup };
     } catch (e) {
         cleanup.forEach(f => { if (fs.existsSync(f)) fs.unlinkSync(f) });
         const stdoutStr = e.stdout ? e.stdout.toString() : '';
@@ -224,7 +225,7 @@ async function executeLocally(language, code) {
     if (buildRes.error) {
         return { stdout: '', stderr: buildRes.error, exitCode: 1, time: 0 };
     }
-    const { imageName, cleanup } = buildRes;
+    const { imageName, containerName, cleanup } = buildRes;
 
     return new Promise((resolve) => {
         let stdout = '';
@@ -232,26 +233,40 @@ async function executeLocally(language, code) {
         const t0 = Date.now();
 
         const proc = spawn('docker', [
-            'run', '--rm',
+            'run', '--name', containerName, '--rm',
             '--memory=128m',
             '--cpus=0.5',
             '--network=none',
             imageName
-        ], { timeout: 20000 });
+        ]);
+
+        let isTimedOut = false;
+        const executionTimeout = setTimeout(() => {
+            isTimedOut = true;
+            try { execSync(`docker rm -f ${containerName}`, { stdio: 'ignore' }); } catch (_) { }
+            proc.kill();
+        }, 15000);
 
         proc.stdout.on('data', (data) => { stdout += data.toString(); });
         proc.stderr.on('data', (data) => { stderr += data.toString(); });
 
         proc.on('close', (code) => {
+            clearTimeout(executionTimeout);
             const time = Date.now() - t0;
             cleanup.forEach(f => { if (fs.existsSync(f)) fs.unlinkSync(f); });
             try { execSync(`docker rmi -f ${imageName}`, { stdio: 'ignore' }); } catch (_) { }
+
+            if (isTimedOut) {
+                stderr += "\n\nError: Execution timed out after 15 seconds.";
+                code = 124;
+            }
 
             console.log(`[Docker] Container ${imageName} exited with code ${code}`);
             resolve({ stdout, stderr, exitCode: code ?? 0, time });
         });
 
         proc.on('error', (err) => {
+            clearTimeout(executionTimeout);
             cleanup.forEach(f => { if (fs.existsSync(f)) fs.unlinkSync(f); });
             try { execSync(`docker rmi -f ${imageName}`, { stdio: 'ignore' }); } catch (_) { }
             resolve({ stdout: '', stderr: err.message, exitCode: 1 });
@@ -701,6 +716,8 @@ execWss.on('connection', (ws) => {
     let proc = null;
     let cleanup = [];
     let imageName = '';
+    let containerName = '';
+    let executionTimeout = null;
     
     ws.on('message', async (message) => {
         try {
@@ -715,22 +732,31 @@ execWss.on('connection', (ws) => {
                 }
                 
                 imageName = buildRes.imageName;
+                containerName = buildRes.containerName;
                 cleanup = buildRes.cleanup;
 
                 // Spawning interactively with -i allows writing to STDIN
                 proc = spawn('docker', [
-                    'run', '-i', '--rm',
+                    'run', '--name', containerName, '-i', '--rm',
                     '--memory=128m',
                     '--cpus=0.5',
                     '--network=none',
                     imageName
                 ]);
                 
+                // 60 seconds timeout for interactive sessions
+                executionTimeout = setTimeout(() => {
+                    ws.send(JSON.stringify({ type: 'stderr', data: '\n\nError: Execution timed out after 60 seconds.' }));
+                    try { execSync(`docker rm -f ${containerName}`, { stdio: 'ignore' }); } catch (_) { }
+                    if (proc) proc.kill();
+                }, 60000);
+
                 const t0 = Date.now();
                 
                 proc.stdout.on('data', (chunk) => ws.send(JSON.stringify({ type: 'stdout', data: chunk.toString() })));
                 proc.stderr.on('data', (chunk) => ws.send(JSON.stringify({ type: 'stderr', data: chunk.toString() })));
                 proc.on('close', (code) => {
+                    if (executionTimeout) clearTimeout(executionTimeout);
                     ws.send(JSON.stringify({ type: 'exit', code, time: Date.now() - t0 }));
                     cleanup.forEach(f => { if (fs.existsSync(f)) fs.unlinkSync(f); });
                     try { execSync(`docker rmi -f ${imageName}`, { stdio: 'ignore' }); } catch (_) { }
@@ -743,7 +769,7 @@ execWss.on('connection', (ws) => {
                 }
             } else if (data.type === 'kill') {
                 if (proc) {
-                    try { execSync(`docker ps -q --filter ancestor=${imageName} | xargs -r docker kill`, { stdio: 'ignore', shell: true }); } catch(_) {}
+                    try { execSync(`docker rm -f ${containerName}`, { stdio: 'ignore' }); } catch(_) {}
                     proc.kill();
                 }
             }
@@ -753,8 +779,9 @@ execWss.on('connection', (ws) => {
     });
 
     ws.on('close', () => {
+        if (executionTimeout) clearTimeout(executionTimeout);
         if (proc) {
-            try { execSync(`docker ps -q --filter ancestor=${imageName} | xargs -r docker kill`, { stdio: 'ignore', shell: true }); } catch(_) {}
+            try { execSync(`docker rm -f ${containerName}`, { stdio: 'ignore' }); } catch(_) {}
             proc.kill();
             cleanup.forEach(f => { if (fs.existsSync(f)) fs.unlinkSync(f); });
             try { execSync(`docker rmi -f ${imageName}`, { stdio: 'ignore' }); } catch (_) { }
