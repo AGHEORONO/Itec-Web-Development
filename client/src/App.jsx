@@ -8,6 +8,7 @@ import TopBar from './components/TopBar';
 import Timeline from './components/Timeline';
 import Sidebar from './components/Sidebar';
 import CodeEditor from './components/CodeEditor';
+import ImageViewer from './components/ImageViewer';
 import Terminal from './components/Terminal';
 import AIPanel from './components/AIPanel';
 import { createCollaboration, getConnectedUsers } from './lib/collaboration';
@@ -870,7 +871,9 @@ export default function App() {
             flex: 1, overflow: 'hidden', borderRadius: '0 12px 12px 12px', border: '1px solid var(--border)',
             background: 'var(--bg-terminal)', position: 'relative'
           }}>
-            {collabRef.current && activeYtext ? (
+            {collabRef.current && activeYtext && /\.(png|jpe?g|gif|svg|webp)$/i.test(currentFile) ? (
+              <ImageViewer dataUrl={activeYtext.toString()} filename={currentFile} />
+            ) : collabRef.current && activeYtext ? (
               <CodeEditor
                 ytext={activeYtext}
                 awareness={collabRef.current.awareness}

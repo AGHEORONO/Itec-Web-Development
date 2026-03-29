@@ -501,6 +501,19 @@ app.all('/preview/:roomId/:file(*)', async (req, res) => {
         const code = ytext.toString();
         const ext = file.split('.').pop().toLowerCase();
 
+        // 0) Serve Base64-encoded image assets
+        const imageExts = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', svg: 'image/svg+xml', webp: 'image/webp' };
+        if (imageExts[ext] && code.startsWith('data:')) {
+            const commaIndex = code.indexOf(',');
+            if (commaIndex !== -1) {
+                const base64Data = code.slice(commaIndex + 1);
+                const buffer = Buffer.from(base64Data, 'base64');
+                res.setHeader('Content-Type', imageExts[ext]);
+                res.setHeader('Content-Length', buffer.length);
+                return res.send(buffer);
+            }
+        }
+
         // 1) Serve static frontend files
         if (ext === 'html') {
             res.setHeader('Content-Type', 'text/html');

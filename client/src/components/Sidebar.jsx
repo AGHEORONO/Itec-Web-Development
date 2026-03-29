@@ -277,6 +277,24 @@ export default function Sidebar({
         }
     };
 
+    const isImageExtension = (name) => {
+        const lower = name.toLowerCase();
+        return lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || 
+               lower.endsWith('.gif') || lower.endsWith('.svg') || lower.endsWith('.webp');
+    };
+
+    const readFileContent = (file) => {
+        return new Promise((resolve) => {
+            if (isImageExtension(file.name)) {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            } else {
+                file.text().then(resolve);
+            }
+        });
+    };
+
     const handleFileUpload = async (e) => {
         const fileList = e.target.files;
         if (!fileList || fileList.length === 0) return;
@@ -287,8 +305,8 @@ export default function Sidebar({
                 window.dispatchEvent(new CustomEvent('solidworks-easter-egg', { detail: { file, name: file.name } }));
                 return;
             }
-            const text = await file.text();
-            onCreateFile(file.name, text);
+            const content = await readFileContent(file);
+            onCreateFile(file.name, content);
         }
         e.target.value = '';
     };
@@ -304,8 +322,8 @@ export default function Sidebar({
                 return;
             }
             const path = file.webkitRelativePath || file.name;
-            const text = await file.text();
-            onCreateFile(path, text);
+            const content = await readFileContent(file);
+            onCreateFile(path, content);
         }
         e.target.value = '';
     };
