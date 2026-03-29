@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Files, Star, Users, Trash2, Palette, Settings, Plus, FileCode2, RotateCcw, X, Download, Blocks, Search, Folder, ChevronRight, ChevronDown, Archive, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Files, Star, Users, Trash2, Palette, Settings, Plus, FileCode2, RotateCcw, X, Download, Blocks, Search, Folder, ChevronRight, ChevronDown, Archive, RefreshCw, CheckCircle2, Upload } from 'lucide-react';
 
 const GithubIcon = ({ size = 24, ...props }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -277,6 +277,29 @@ export default function Sidebar({
         }
     };
 
+    const handleFileUpload = async (e) => {
+        const fileList = e.target.files;
+        if (!fileList || fileList.length === 0) return;
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            const text = await file.text();
+            onCreateFile(file.name, text);
+        }
+        e.target.value = '';
+    };
+
+    const handleFolderUpload = async (e) => {
+        const fileList = e.target.files;
+        if (!fileList || fileList.length === 0) return;
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            const path = file.webkitRelativePath || file.name;
+            const text = await file.text();
+            onCreateFile(path, text);
+        }
+        e.target.value = '';
+    };
+
     const tabs = [
         { id: 'files', icon: Files, label: 'Files' },
         { id: 'github', icon: GithubIcon, label: 'Source Control' },
@@ -392,23 +415,45 @@ export default function Sidebar({
                                         }} />
                                 </form>
                             ) : (
-                                <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
-                                    <button onClick={() => { setIsCreating(true); setIsCreatingFolder(false); }}
-                                        style={{
-                                            flex: 1, padding: '8px', borderRadius: 8, border: '1px dashed var(--border-primary)',
-                                            background: 'transparent', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, transition: 'all .2s'
-                                        }}>
-                                        <Plus size={12} /> File
-                                    </button>
-                                    <button onClick={() => { setIsCreating(true); setIsCreatingFolder(true); }}
-                                        style={{
-                                            flex: 1, padding: '8px', borderRadius: 8, border: '1px dashed var(--border-primary)',
-                                            background: 'transparent', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, transition: 'all .2s'
-                                        }}>
-                                        <Folder size={12} /> Folder
-                                    </button>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                        <button onClick={() => { setIsCreating(true); setIsCreatingFolder(false); }} title="New File"
+                                            style={{
+                                                flex: 1, padding: '8px', borderRadius: 8, border: '1px dashed var(--border-primary)',
+                                                background: 'transparent', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, transition: 'all .2s'
+                                            }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+                                            <Plus size={12} /> File
+                                        </button>
+                                        <button onClick={() => { setIsCreating(true); setIsCreatingFolder(true); }} title="New Folder"
+                                            style={{
+                                                flex: 1, padding: '8px', borderRadius: 8, border: '1px dashed var(--border-primary)',
+                                                background: 'transparent', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, transition: 'all .2s'
+                                            }} onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}>
+                                            <Folder size={12} /> Folder
+                                        </button>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                        <label title="Upload File(s)"
+                                            style={{
+                                                flex: 1, padding: '8px', borderRadius: 8, border: '1px solid var(--border)',
+                                                background: 'var(--bg-input)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, transition: 'all .2s'
+                                            }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'} onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
+                                            <Upload size={12} /> Upload File
+                                            <input type="file" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
+                                        </label>
+                                        <label title="Upload Folder"
+                                            style={{
+                                                flex: 1, padding: '8px', borderRadius: 8, border: '1px solid var(--border)',
+                                                background: 'var(--bg-input)', color: 'var(--accent)', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, transition: 'all .2s'
+                                            }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'} onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-input)'}>
+                                            <Upload size={12} /> Upload Folder
+                                            <input type="file" webkitdirectory="true" directory="true" style={{ display: 'none' }} onChange={handleFolderUpload} />
+                                        </label>
+                                    </div>
                                 </div>
                             )}
 

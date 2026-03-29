@@ -333,9 +333,9 @@ export default function App() {
     else setLanguage('python');
   };
 
-  const handleCreateFile = (fileName) => {
+  const handleCreateFile = (fileName, initialContent = '') => {
     if (!collabRef.current) return;
-    const newDoc = new Y.Text('');
+    const newDoc = new Y.Text(initialContent);
     collabRef.current.filesystem.set(fileName, newDoc);
     setCurrentFile(fileName);
   };
