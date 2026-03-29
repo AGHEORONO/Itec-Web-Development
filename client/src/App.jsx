@@ -732,13 +732,21 @@ export default function App() {
      setInlineUI({ type: null });
   }, [setInlineUI]);
 
+  const handleProfileSubmit = (profile) => {
+      if (profile.roomCode && profile.roomCode.trim() !== '' && profile.roomCode !== roomId) {
+          window.location.href = `/room/${profile.roomCode.trim()}`;
+          return;
+      }
+      setUserProfile(profile);
+  };
+
   // Show login
   if (!hasStarted) {
     return <LandingPage onStart={() => setHasStarted(true)} isDark={isDark} onToggleTheme={toggleTheme} />;
   }
 
   if (!userProfile?.name) {
-    return <NameModal onSubmit={setUserProfile} isDark={isDark} onToggleTheme={toggleTheme} />;
+    return <NameModal onSubmit={handleProfileSubmit} currentRoomId={roomId} isDark={isDark} onToggleTheme={toggleTheme} />;
   }
 
   return (

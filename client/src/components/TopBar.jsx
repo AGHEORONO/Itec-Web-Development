@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Sun, Moon, Sparkles, Play, Loader2, Share2, Check, ChevronDown } from 'lucide-react';
+import { Sun, Moon, Sparkles, Play, Loader2, Share2, Check, ChevronDown, Plus } from 'lucide-react';
 
 export default function TopBar({ language, onLanguageChange, onRun, isRunning, onShare, wsStatus, undoManager, isDark, onToggleTheme, onToggleAI, isAiOpen, users }) {
     const [copied, setCopied] = useState(false);
@@ -123,6 +123,16 @@ export default function TopBar({ language, onLanguageChange, onRun, isRunning, o
                 </button>
 
                 <div className="hidden-mobile" style={{ width: 1, height: 20, background: 'var(--border)' }} />
+
+                {/* New Room Button */}
+                <button onClick={() => window.open('/', '_blank')} title="Create a new workspace room"
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 12,
+                        border: '1px solid var(--border-primary)', background: 'transparent',
+                        color: 'var(--text-muted)', fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all .2s'
+                    }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-primary-light)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <Plus size={14} color="var(--accent)" /> <span className="mobile-btn-text">New</span>
+                </button>
 
 
 

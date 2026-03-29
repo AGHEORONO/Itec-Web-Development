@@ -2,8 +2,9 @@ import { useState, useRef } from 'react';
 import { Users, Play, Sun, Moon, Image as ImageIcon, Type, User } from 'lucide-react';
 import { USER_COLORS } from '../lib/collaboration';
 
-export default function NameModal({ onSubmit, isDark, onToggleTheme }) {
+export default function NameModal({ onSubmit, isDark, onToggleTheme, currentRoomId }) {
     const [name, setName] = useState('');
+    const [roomCode, setRoomCode] = useState(currentRoomId || '');
     const [color, setColor] = useState(USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]);
     const [avatarType, setAvatarType] = useState('letters'); // letters, icon, image
     const [avatarData, setAvatarData] = useState(null);
@@ -46,7 +47,8 @@ export default function NameModal({ onSubmit, isDark, onToggleTheme }) {
         onSubmit({
             name: v,
             color,
-            avatar: { type: avatarType, data: avatarData }
+            avatar: { type: avatarType, data: avatarData },
+            roomCode
         });
     };
 
@@ -144,6 +146,21 @@ export default function NameModal({ onSubmit, isDark, onToggleTheme }) {
                         </button>
                         <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} style={{ display: 'none' }} />
                     </div>
+                </div>
+
+                {/* Room Code */}
+                <div style={{ marginBottom: 32 }}>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Room Code (Auto-generated)</label>
+                    <input
+                        type="text" value={roomCode} onChange={e => setRoomCode(e.target.value)} placeholder="Paste room code to join"
+                        style={{
+                            width: '100%', padding: '14px 16px', borderRadius: 12, border: '1px solid var(--border)',
+                            background: 'var(--bg-input)', color: 'var(--accent)', fontSize: 14, outline: 'none',
+                            transition: 'all .3s', fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.05em'
+                        }}
+                        onFocus={e => { e.target.style.borderColor = color; e.target.style.boxShadow = `0 0 0 3px ${color}30`; }}
+                        onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                    />
                 </div>
 
                 <button type="submit" style={{
